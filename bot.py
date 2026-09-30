@@ -1,55 +1,159 @@
 import os
-from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import (
+    Application,
+    CommandHandler,
+    CallbackQueryHandler,
+    ContextTypes,
+)
 
 TOKEN = os.environ.get("BOT_TOKEN")
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [
+            InlineKeyboardButton("📅 Calendario", callback_data="calendario"),
+            InlineKeyboardButton("➕ Añadir turno", callback_data="anadir"),
+        ],
+        [
+            InlineKeyboardButton("⏱️ Horas", callback_data="horas"),
+            InlineKeyboardButton("💶 Dinero", callback_data="dinero"),
+        ],
+        [
+            InlineKeyboardButton("📊 Resumen", callback_data="resumen"),
+            InlineKeyboardButton("⚙️ Configuración", callback_data="config"),
+        ],
+    ]
+
     await update.message.reply_text(
-        "👋 Hola Raúl.\n\n"
-        "🤖 Bot de turnos Persán\n\n"
-        "Comandos disponibles:\n"
-        "/hoy - Ver el turno de hoy\n"
-        "/mes - Ver el mes\n"
-        "/horas - Ver horas trabajadas\n"
-        "/dinero - Ver dinero\n"
-        "/resumen - Resumen del mes"
+        "🤖 TURNOS PERSÁN\n\n"
+        "¿Qué quieres hacer?",
+        reply_markup=InlineKeyboardMarkup(keyboard),
     )
 
 
-async def hoy(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "📅 Hoy\n\n"
-        "Todavía no hay ningún turno guardado."
+async def botones(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    if query.data == "calendario":
+        texto = (
+            "📅 CALENDARIO\n\n"
+            "Todavía no hay turnos guardados."
+        )
+
+    elif query.data == "anadir":
+        keyboard = [
+            [
+                InlineKeyboardButton("🟢 Mañana", callback_data="turno_manana"),
+                InlineKeyboardButton("🟡 Tarde", callback_data="turno_tarde"),
+            ],
+            [
+                InlineKeyboardButton("⚫ Noche", callback_data="turno_noche"),
+                InlineKeyboardButton("⚪ Descanso", callback_data="turno_descanso"),
+            ],
+            [
+                InlineKeyboardButton("🔴 Vacaciones", callback_data="turno_vacaciones"),
+                InlineKeyboardButton("🔵 Asuntos propios", callback_data="turno_asuntos"),
+            ],
+            [
+                InlineKeyboardButton("🟠 Baja", callback_data="turno_baja"),
+                InlineKeyboardButton("🎉 Festivo", callback_data="turno_festivo"),
+            ],
+        ]
+
+        texto = "➕ AÑADIR TURNO\n\n¿Qué turno quieres guardar?"
+
+    elif query.data == "horas":
+        texto = "⏱️ HORAS\n\nTodavía no hay horas registradas."
+
+    elif query.data == "dinero":
+        texto = "💶 DINERO\n\nTodavía no hay datos para calcular."
+
+    elif query.data == "resumen":
+        texto = "📊 RESUMEN\n\nTodavía no hay datos registrados."
+
+    elif query.data == "config":
+        texto = "⚙️ CONFIGURACIÓN\n\nAquí configuraremos tus tarifas y preferencias."
+
+    elif query.data.startswith("turno_"):
+        turnos = {
+            "turno_manana": "🟢 Mañana",
+            "turno_tarde": "🟡 Tarde",
+            "turno_noche": "⚫ Noche",
+            "turno_descanso": "⚪ Descanso",
+            "turno_vacaciones": "🔴 Vacaciones",
+            "turno_asuntos": "🔵 Asuntos propios",
+            "turno_baja": "🟠 Baja",
+            "turno_festivo": "🎉 Festivo",
+        }
+
+        turno = turnos.get(query.data, "Turno desconocido")
+
+        texto = (
+            f"Has elegido: {turno}\n\n"
+            "📅 Ahora tendremos que elegir el día."
+        )
+
+    else:
+        texto = "Opción no disponible."
+
+    keyboard = [
+        [InlineKeyboardButton("🏠 Menú principal", callback_data="inicio")]
+    ]
+
+    if query.data == "anadir":
+        keyboard = [
+            [
+                InlineKeyboardButton("🟢 Mañana", callback_data="turno_manana"),
+                InlineKeyboardButton("🟡 Tarde", callback_data="turno_tarde"),
+            ],
+            [
+                InlineKeyboardButton("⚫ Noche", callback_data="turno_noche"),
+                InlineKeyboardButton("⚪ Descanso", callback_data="turno_descanso"),
+            ],
+            [
+                InlineKeyboardButton("🔴 Vacaciones", callback_data="turno_vacaciones"),
+                InlineKeyboardButton("🔵 Asuntos propios", callback_data="turno_asuntos"),
+            ],
+            [
+                InlineKeyboardButton("🟠 Baja", callback_data="turno_baja"),
+                InlineKeyboardButton("🎉 Festivo", callback_data="turno_festivo"),
+            ],
+            [
+                InlineKeyboardButton("🏠 Menú principal", callback_data="inicio")
+            ],
+        ]
+
+    await query.edit_message_text(
+        texto,
+        reply_markup=InlineKeyboardMarkup(keyboard),
     )
 
 
-async def mes(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "📆 Calendario mensual\n\n"
-        "Aquí iremos poniendo tus turnos."
-    )
+async def inicio(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
 
+    keyboard = [
+        [
+            InlineKeyboardButton("📅 Calendario", callback_data="calendario"),
+            InlineKeyboardButton("➕ Añadir turno", callback_data="anadir"),
+        ],
+        [
+            InlineKeyboardButton("⏱️ Horas", callback_data="horas"),
+            InlineKeyboardButton("💶 Dinero", callback_data="dinero"),
+        ],
+        [
+            InlineKeyboardButton("📊 Resumen", callback_data="resumen"),
+            InlineKeyboardButton("⚙️ Configuración", callback_data="config"),
+        ],
+    ]
 
-async def horas(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "⏱️ Horas trabajadas\n\n"
-        "Todavía no hay horas registradas."
-    )
-
-
-async def dinero(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "💶 Dinero\n\n"
-        "Aquí calcularemos tu salario según tus tarifas."
-    )
-
-
-async def resumen(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "📊 Resumen mensual\n\n"
-        "Todavía no hay datos registrados."
+    await query.edit_message_text(
+        "🤖 TURNOS PERSÁN\n\n¿Qué quieres hacer?",
+        reply_markup=InlineKeyboardMarkup(keyboard),
     )
 
 
@@ -57,11 +161,8 @@ def main():
     app = Application.builder().token(TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("hoy", hoy))
-    app.add_handler(CommandHandler("mes", mes))
-    app.add_handler(CommandHandler("horas", horas))
-    app.add_handler(CommandHandler("dinero", dinero))
-    app.add_handler(CommandHandler("resumen", resumen))
+    app.add_handler(CallbackQueryHandler(botones))
+    app.add_handler(CallbackQueryHandler(inicio, pattern="^inicio$"))
 
     app.run_polling()
 
